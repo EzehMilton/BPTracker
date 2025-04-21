@@ -9,7 +9,7 @@
     <div th:fragment="content">
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="bg-light p-4 rounded-3 shadow-sm mb-4">
+                <div class="welcome-section fade-in">
                     <h1 class="display-5">
                         <i class="bi bi-speedometer2 text-primary me-2"></i>
                         Welcome, <span th:text="${user.fullName}" class="text-primary">User</span>!
@@ -28,7 +28,7 @@
         <!-- Critical Readings Alert -->
         <div class="row mb-4" th:if="${hasCriticalReadings}">
             <div class="col-md-12">
-                <div class="card border-danger shadow">
+                <div class="card border-danger shadow fade-in" style="animation-delay: 0.1s;">
                     <div class="card-header bg-danger text-white">
                         <h5 class="mb-0 d-flex align-items-center">
                             <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i> 
@@ -80,7 +80,7 @@
         <!-- Quick Actions -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card shadow">
+                <div class="card shadow fade-in" style="animation-delay: 0.2s;">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0 d-flex align-items-center">
                             <i class="bi bi-lightning-charge-fill me-2"></i>
@@ -142,7 +142,7 @@
         <!-- Recent Patients -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card shadow">
+                <div class="card shadow fade-in" style="animation-delay: 0.3s;">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0 d-flex align-items-center">
                             <i class="bi bi-people-fill me-2"></i>
@@ -219,7 +219,7 @@
         <!-- System Stats -->
         <div class="row">
             <div class="col-md-12">
-                <div class="card shadow">
+                <div class="card shadow fade-in" style="animation-delay: 0.4s;">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0 d-flex align-items-center">
                             <i class="bi bi-bar-chart-fill me-2"></i>
