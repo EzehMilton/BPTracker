@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Details - BP Tracker</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="bg-light p-4 rounded-3 shadow-sm mb-4">
+                    <h1 class="display-5">
+                        <i class="bi bi-person-fill text-primary me-2"></i>
+                        Patient Details
+                    </h1>
+                    <p class="lead">
+                        View and manage patient information
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="bi bi-person-vcard-fill me-2"></i>
+                            <span>Personal Information</span>
+                        </h5>
+                        <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-light btn-sm">
+                            <i class="bi bi-pencil-fill me-1"></i> Edit
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h3 th:text="${patient.firstName + ' ' + patient.lastName}" class="mb-3">Patient Name</h3>
+                                <p>
+                                    <span class="badge rounded-pill" 
+                                          th:classappend="${patient.gender == 'MALE' ? 'bg-info text-dark' : 
+                                                         (patient.gender == 'FEMALE' ? 'bg-danger' : 
+                                                         (patient.gender == 'OTHER' ? 'bg-warning text-dark' : 'bg-secondary'))}"
+                                          th:text="${patient.gender}">Gender</span>
+                                </p>
+                                <p th:if="${patient.dateOfBirth}">
+                                    <i class="bi bi-calendar-date-fill me-2 text-primary"></i>
+                                    <strong>Date of Birth:</strong> 
+                                    <span th:text="${#temporals.format(patient.dateOfBirth, 'MMMM dd, yyyy')}">January 1, 1990</span>
+                                </p>
+                                <p>
+                                    <i class="bi bi-calendar-check-fill me-2 text-success"></i>
+                                    <strong>Registration Date:</strong> 
+                                    <span th:text="${#temporals.format(patient.registrationDate, 'MMMM dd, yyyy')}">January 1, 2023</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3" th:if="${patient.phoneNumber}">
+                                    <i class="bi bi-telephone-fill me-2 text-success"></i>
+                                    <strong>Phone:</strong> 
+                                    <a th:href="'tel:' + ${patient.phoneNumber}" class="text-decoration-none" th:text="${patient.phoneNumber}">+1234567890</a>
+                                </div>
+                                <div class="mb-3" th:if="${patient.email}">
+                                    <i class="bi bi-envelope-fill me-2 text-primary"></i>
+                                    <strong>Email:</strong> 
+                                    <a th:href="'mailto:' + ${patient.email}" class="text-decoration-none" th:text="${patient.email}">patient@example.com</a>
+                                </div>
+                                <div class="mb-3" th:if="${patient.address}">
+                                    <i class="bi bi-geo-alt-fill me-2 text-danger"></i>
+                                    <strong>Address:</strong> 
+                                    <p class="ms-4 mb-0" th:text="${patient.address}">123 Main St, City, Country</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4" th:if="${patient.medicalHistory}">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-clipboard2-pulse-fill me-2 text-primary"></i>
+                                Medical History
+                            </h5>
+                            <p th:text="${patient.medicalHistory}">Patient's medical history will be displayed here.</p>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a th:href="@{/patients}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Patients
+                            </a>
+                            <div>
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="bi bi-trash-fill me-1"></i> Delete Patient
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="bi bi-heart-pulse-fill me-2"></i>
+                            <span>Blood Pressure</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/bp-readings/patient/{id}/record(id=${patient.id})}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle-fill me-1"></i> Record BP Reading
+                            </a>
+                            <a th:href="@{/bp-readings/patient/{id}(id=${patient.id})}" class="btn btn-outline-secondary">
+                                <i class="bi bi-list-ul me-1"></i> View All Readings
+                            </a>
+                            <a th:href="@{/bp-readings/patient/{id}/chart(id=${patient.id})}" class="btn btn-outline-info">
+                                <i class="bi bi-graph-up me-1"></i> View BP Chart
+                            </a>
+                        </div>
+
+                        <div class="mt-4" th:if="${not #lists.isEmpty(patient.bpReadings)}">
+                            <h6 class="border-bottom pb-2 mb-3">Recent Readings</h6>
+                            <div class="list-group">
+                                <a th:each="reading, stat : ${patient.bpReadings}" 
+                                   th:if="${stat.index < 3}"
+                                   th:href="@{/bp-readings/{id}(id=${reading.id})}" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1" th:text="${reading.systolicPressure + '/' + reading.diastolicPressure + ' mmHg'}">120/80 mmHg</h6>
+                                        <small th:text="${#temporals.format(reading.readingTime, 'MMM dd, yyyy')}">Jan 1, 2023</small>
+                                    </div>
+                                    <p class="mb-1">
+                                        <span class="badge rounded-pill" 
+                                              th:classappend="${reading.alertLevel == 'NORMAL' ? 'bg-success' : 
+                                                              (reading.alertLevel == 'ELEVATED' ? 'bg-warning text-dark' : 
+                                                              (reading.alertLevel == 'HIGH' ? 'bg-orange' : 'bg-danger'))}"
+                                              th:text="${reading.alertLevel}">Normal</span>
+                                    </p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="bi bi-gear-fill me-2"></i>
+                            <span>Actions</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil-fill me-1"></i> Edit Patient
+                            </a>
+                            <a th:href="@{/dashboard}" class="btn btn-outline-secondary">
+                                <i class="bi bi-speedometer2 me-1"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete the patient <strong th:text="${patient.firstName + ' ' + patient.lastName}">Patient Name</strong>?</p>
+                        <p class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> This will also delete all blood pressure readings for this patient. This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form th:action="@{/patients/{id}/delete(id=${patient.id})}" method="post">
+                            <button type="submit" class="btn btn-danger">Delete Patient</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
