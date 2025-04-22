@@ -1,9 +1,11 @@
 package org.chikere.bptracker.app.config;
 
 import lombok.RequiredArgsConstructor;
+import org.chikere.bptracker.app.security.JwtAuthenticationFilter;
 import org.chikere.bptracker.app.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -11,8 +13,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
@@ -26,6 +30,7 @@ public class SecurityConfig {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * Authentication provider bean
@@ -51,7 +56,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Security filter chain bean
+     * Security filter chain bean for all endpoints
      * @param http the HttpSecurity to configure
      * @return a SecurityFilterChain
      * @throws Exception if an error occurs
@@ -61,24 +66,18 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/webjars/**", "/images/**", "/h2-console/**").permitAll()
-                .requestMatchers("/register", "/login").permitAll()
-                .requestMatchers("/admin/**").hasRole("NURSE")
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("NURSE")
+                .requestMatchers("/h2-console/**").permitAll() // For H2 console
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .defaultSuccessUrl("/dashboard")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/login?logout")
-                .permitAll()
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .headers(headers -> headers
                 .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'self'"))
-            ); // For H2 console
+            ) // For H2 console
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
